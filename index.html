@@ -296,6 +296,15 @@ button[type="submit"]:hover {
   <input type="text" id="tinhthanh" name="tinhthanh" placeholder="Nhập tỉnh/thành" required>
   <label>Đơn vị:</label>
   <input type="text" id="donvi" placeholder="Nhập đơn vị" required />
+<label>Dự kiến thời gian thăm:</label>
+
+<input type="date" id="ngaytham" required />
+
+<label>Giờ bắt đầu:</label>
+<input type="time" id="giobatdau" value="07:00" required />
+
+<label>Giờ kết thúc:</label>
+<input type="time" id="gioketthuc" value="09:00" required />
   <button type="submit">Gửi đăng ký</button>
 </form>
 <p id="status"></p>
@@ -378,11 +387,29 @@ document.getElementById("visitForm").addEventListener("submit", function(e){
     sdt: document.getElementById("sdt").value,
     tinhthanhpho: document.getElementById("tinhthanh").value,
     donvi: document.getElementById("donvi").value,
+	dukienthoigiantham: (() => {
+  const ngay = document.getElementById("ngaytham").value;
+  const batdau = document.getElementById("giobatdau").value;
+  const ketthuc = document.getElementById("gioketthuc").value;
+
+  if (!ngay || !batdau || !ketthuc) {
+    throw new Error("Vui lòng nhập đầy đủ thời gian thăm!");
+  }
+
+  if (ketthuc <= batdau) {
+    throw new Error("Giờ kết thúc phải sau giờ bắt đầu!");
+  }
+
+  const ngayVN = new Date(ngay + "T00:00:00")
+    .toLocaleDateString("vi-VN");
+
+  return ngayVN + " - Từ " + batdau + " đến " + ketthuc;
+})(),
     trangthai: "Chờ duyệt",
     thoigian: new Date().toLocaleString()
   };
 
-  fetch("https://script.google.com/macros/s/AKfycbz1Ngt7v3BqND8g_hHA7av7Q5XaLnupGCrHr75e_HWaRy9xmQ5SG8rtJWaTGyaHW0Zz2g/exec", {
+  fetch("https://script.google.com/macros/s/AKfycbxudu2zlSOkbI2HBkjUZBOo44FfzqkGsz_IHDG_Z2YUTrJma0r3DRFXGudlmLm4Fdh5Tw/exec", {
     method: "POST",
     body: JSON.stringify(data)
   })
@@ -413,7 +440,7 @@ if (!c) {
     return;
 }
 
-fetch(`https://script.google.com/macros/s/AKfycbz1Ngt7v3BqND8g_hHA7av7Q5XaLnupGCrHr75e_HWaRy9xmQ5SG8rtJWaTGyaHW0Zz2g/exec?cccd=${c}`)
+fetch(`https://script.google.com/macros/s/AKfycbxudu2zlSOkbI2HBkjUZBOo44FfzqkGsz_IHDG_Z2YUTrJma0r3DRFXGudlmLm4Fdh5Tw/exec?cccd=${c}`)
 .then(r => r.json())
 .then(d => {
 
@@ -434,6 +461,7 @@ result.innerHTML = `
 <b>SĐT:</b> ${r.sdt}<br>
 <b>Tỉnh/Thành:</b> ${r.tinhthanhpho}<br>
 <b>Đơn vị:</b> ${r.donvi}<br>
+<b>Dự kiến thời gian thăm:</b> ${r.dukienthoigiantham || "Chưa có thông tin"}<br>
 <b>Trạng thái:</b> <span style="color:green">${r.trangthai}</span><br>
 <b>Thời gian đăng ký:</b> ${r.thoigianvao}
 </div>
